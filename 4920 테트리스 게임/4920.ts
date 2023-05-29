@@ -4,12 +4,6 @@ const input = `4
  7  1 30 6 
  4 30 30 5 
  3  1 30 2 
- 5
- 15 1 2 3 4
- 1 2 3 4 5
- 1 2 3 4 5
- 12 2 3 4 5
- 1 2 3 4 5
 0`;
 
 function solution(input: string) {
@@ -110,14 +104,14 @@ function solution(input: string) {
       return curriedIsLower;
     }
 
-    const move = [
+    const move: [number, number][] = [
       [0, 1],
       [0, -1],
       [1, 0],
       [-1, 0],
     ];
 
-    function makeCombination<T>(arr: T[], n: number): T[][] {
+    function makeCombination<T = number>(arr: T[], n: number): T[][] {
       if (n === 1) {
         return arr.map((x) => [x]);
       }
@@ -131,10 +125,79 @@ function solution(input: string) {
       });
       return returnArr;
     }
+
+    /**
+     * arr1의 아이템 중 arr2에 포함이 안 된 아이템들의 리스트를 반환하는 함수
+     */
+    function returnNotIncludesIn<T = number>(arr1: T[], arr2: T[]) {
+      return arr1.filter((x) => !arr2.includes(x));
+    }
+
+    function BFS(i: number, j: number, n: number, grid: gridType): number {
+      const q = new Queue<[[number, number][], Visited, number, number]>();
+      q.push([[[i, j]], new Visited(i, j), grid[i][j], 1]);
+      let max = 0;
+      const curriedIsLower = makeCurriedIsLower(i, j);
+      while (q.size()) {
+        const [start, visited, sum, t] = q.pop();
+        if (t === n) {
+          max = Math.max(sum, max);
+          continue;
+        }
+        const candidate = start.flatMap((x) => {
+          const [i, j] = x;
+          return move
+            .map((m: [number, number]) => [i + m[0], j + m[1]])
+            .filter((m: [number, number]) => {
+              const [mi, mj] = m;
+              if (
+                grid[mi]?.[mj] !== undefined &&
+                !visited.has(mi, mj) &&
+                curriedIsLower(mi, mj)
+              )
+                return true;
+              else return false;
+            });
+        }) as [number, number][];
+        if (candidate.length === 0) continue;
+        const temp = Array.from({ length: candidate.length }, (_, i) => i);
+        const tempComb: number[][] = [];
+        for (let l = 1; l <= n - t; l++)
+          tempComb.push(...makeCombination(temp, l));
+        if (tempComb.length === 0) continue;
+        const tempVisitedComb = tempComb.map((x) =>
+          returnNotIncludesIn(temp, x)
+        );
+        const comb: [number, number][][] = tempComb.map((x) =>
+          x.map((y) => candidate[y])
+        );
+        const visitedComb = tempVisitedComb.map((x) =>
+          x.map((y) => candidate[y])
+        );
+        // comb의 구조: [[생1, 생2], [생2, 생3]] = [[[생1y, 생1x], [생2y, 생2x]], [[생2y, 생2x], [생3y, 생3x]]]
+        // cp의 구조: [[생1y, 생1x], [생2y, 생2x]]
+        // vcp의 구조: 상동
+        for (const [cp, vcp] of [comb, visitedComb]) {
+          const qvisit = new Visited();
+          for (const [i, j] of cp) qvisit.push(i, j);
+          if (vcp?.length > 0) for (const [i, j] of vcp) qvisit.push(i, j);
+          const newSum = sum + cp.reduce((a, c) => a + grid[c[0]][c[1]], 0);
+          q.push([cp, qvisit, newSum, t + cp.length]);
+        }
+      }
+      return max;
+    }
+    let max = 0;
+    for (let j = 0; j < grid[0].length; j++) {
+      for (let i = 0; i < grid.length; i++) {
+        max = Math.max(BFS(i, j, 4, grid), max);
+      }
+    }
+    return max;
   }
   const result = grids.map(
     (grid, i) => (i + 1).toString() + ". " + solve(grid).toString()
   );
   return result.join("\n");
 }
-solution(input);
+console.log(solution(input));
