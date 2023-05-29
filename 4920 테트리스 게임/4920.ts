@@ -1,9 +1,15 @@
-// const input = require('fs').readFileSync('/dev/stdin/').toString().trim();
+// const input = require('fs').readFileSync('/dev/stdin').toString().trim();
 const input = `4 
 70  2  1 7
- 7  1 30 6 
- 4 30 30 5 
- 3  1 30 2 
+ 7  1 40 6 
+ 4 40 -1 5 
+ 41  1 40 2 
+ 5
+ -1 -2 -3 -4 -5
+ -1 -4 -5 -6 -67
+ -1 -2 -3 -4 -5
+ -1 -2 -3 -4 -5
+ -2 -23 -4 -5 -56
 0`;
 
 function solution(input: string) {
@@ -72,7 +78,7 @@ function solution(input: string) {
   const grids: gridsType = input
     .split("\n")
     .slice(0, -1)
-    .map((v) => v.match(/\d+/g))
+    .map((v) => v.match(/-*\d+/g))
     .reduce((a, c) => {
       if (c?.length === 1) {
         a.push([]);
@@ -136,7 +142,7 @@ function solution(input: string) {
     function BFS(i: number, j: number, n: number, grid: gridType): number {
       const q = new Queue<[[number, number][], Visited, number, number]>();
       q.push([[[i, j]], new Visited(i, j), grid[i][j], 1]);
-      let max = 0;
+      let max = -Infinity;
       const curriedIsLower = makeCurriedIsLower(i, j);
       while (q.size()) {
         const [start, visited, sum, t] = q.pop();
@@ -159,6 +165,7 @@ function solution(input: string) {
               else return false;
             });
         }) as [number, number][];
+
         if (candidate.length === 0) continue;
         const temp = Array.from({ length: candidate.length }, (_, i) => i);
         const tempComb: number[][] = [];
@@ -177,8 +184,10 @@ function solution(input: string) {
         // comb의 구조: [[생1, 생2], [생2, 생3]] = [[[생1y, 생1x], [생2y, 생2x]], [[생2y, 생2x], [생3y, 생3x]]]
         // cp의 구조: [[생1y, 생1x], [생2y, 생2x]]
         // vcp의 구조: 상동
+        const oldVisited = visited.entries();
         for (const [cp, vcp] of [comb, visitedComb]) {
           const qvisit = new Visited();
+          for (const [i, j] of oldVisited) qvisit.push(i, j);
           for (const [i, j] of cp) qvisit.push(i, j);
           if (vcp?.length > 0) for (const [i, j] of vcp) qvisit.push(i, j);
           const newSum = sum + cp.reduce((a, c) => a + grid[c[0]][c[1]], 0);
@@ -187,7 +196,7 @@ function solution(input: string) {
       }
       return max;
     }
-    let max = 0;
+    let max = -Infinity;
     for (let j = 0; j < grid[0].length; j++) {
       for (let i = 0; i < grid.length; i++) {
         max = Math.max(BFS(i, j, 4, grid), max);
