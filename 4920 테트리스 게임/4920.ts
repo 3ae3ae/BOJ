@@ -90,7 +90,38 @@ function solution(input: string) {
       if (row.length === 1) grids.push([]);
       else grids[grids.length - 1].push(row);
     });
-  function solve(grid: gridType): string {}
+  function solve(grid: gridType): number {
+    let max = -Infinity;
+    for (let i = 0; i < grid.length; i++) {
+      for (let j = 0; j < grid[0].length; j++) {
+        [...Object.values(Tetro)].forEach((T) =>
+          T.forEach((t) => {
+            if (
+              t.every((tt, y) =>
+                tt.every((ttt, x) =>
+                  ttt === 0 ? true : grid[i + y]?.[j + x] !== undefined
+                )
+              )
+            ) {
+              max = Math.max(
+                max,
+                t.reduce(
+                  (a, tt, y) =>
+                    a +
+                    tt.reduce(
+                      (a, ttt, x) => (ttt === 0 ? a : a + grid[i + y][j + x]),
+                      0
+                    ),
+                  0
+                )
+              );
+            }
+          })
+        );
+      }
+    }
+    return max;
+  }
   return grids.map((grid, i) => `${i + 1}. ${solve(grid)}`).join("\n");
 }
 console.log(solution(input));
