@@ -1,25 +1,57 @@
-const input = `10
-1 5 2 1 3 2.5 4 5 2 1`;
-function solution (input: string): number{
-  const sequence = input.split("\n")[1].split(" ").map(x=>Number(x));
-  const copy = <T>(a:T):T => JSON.parse(JSON.stringify(a));
-  // 증가하는 부분 수열찾는 함수
-  // 다이나믹 프로그래밍. 뒤에 들어오는 값이 그냥 들어올 수 있으면 들여보내고, 없으면 그 값이 꼭 들어온다는 가정하에 부분 수열을 만들어보고 비교.
-  // 부분 수열 만들 때는 맨 뒤 값보다 큰 수 다 삭제하고 남은 수보다 큰값이면서 맨뒤값보다 작은 값 채용
-  function find_increasing(sequence:number[]): number[]{
-    type indexedNumber = [number, number]
-    const indexedSQ:indexedNumber[] = sequence.map((x,i)=> [x,i]);
-    const dp: indexedNumber[][] = [];
-    dp.push([indexedSQ[0]])
-    for (let i=1; i<indexedSQ.length; i++){
-      const [x, j] = indexedSQ[i];
-      if (x<dp[i-i][dp[i-1].length-1][0])
-        dp.push([...dp[i-1], [x,j]]);
+import fs = require("fs");
+const input = fs.readFileSync("./dev/stdin").toString().trim();
+
+function solution(input: string): number {
+  const getMiddle = (l: number, r: number): number => Math.floor((l + r) / 2);
+  const sequence = input
+    .split("\n")[1]
+    .split(" ")
+    .map((x) => Number(x));
+  /**
+   * n이 seq에서 몇번째 위치에 들어가야할 지 반환하는 함수
+   */
+  function binarySearch(seq: number[], n: number, reversal = false) {
+    let [l, r] = [0, seq.length - 1];
+    let m = getMiddle(l, r);
+    while (l <= r) {
+      const condition = reversal ? n > seq[m] : n < seq[m];
+      if (n === seq[m]) return m;
+      if (condition) r = m - 1;
+      else l = m + 1;
+      m = getMiddle(l, r);
+    }
+    const condition = reversal ? seq[m] > n : seq[m] < n;
+    if (condition) return m + 1;
+    else return m - 1;
+  }
+  function findOneWay(seq: number[], decrease = false) {
+    const b: number[] = [0];
+    const d: number[] = [];
+    if (decrease) b[0] = Infinity;
+    for (let i = 0; i < seq.length; i++) {
+      const p = binarySearch(b, seq[i], decrease);
+      const condition = decrease ? b[p] >= seq[i] : b[p] <= seq[i];
+      if (b[p] && condition) continue;
       else {
-        const tdp = [...dp[i-1]].filter(d=> d[0]<x);
-        const [y, k] = tdp[tdp.length-1]
-        if (indexedSQ.slice(k+1, j).every(xx=> ))
+        b[p] = seq[i];
+        d[p - 1] = i;
       }
     }
+    return d;
   }
+
+  const increasing = findOneWay(sequence);
+  const decreasing = findOneWay(sequence, true);
+  function findCenter(inc: number[], dec: number[], seq: number[]) {
+    let [l, r] = [0, seq.length - 1];
+    let m = getMiddle(l, r);
+    while (l <= r) {
+      const incTemp = binarySearch(inc, seq[m]);
+      const [leftInc, rightInc];
+    }
+  }
+  return 1;
 }
+console.time();
+console.log(solution(input));
+console.timeEnd();
