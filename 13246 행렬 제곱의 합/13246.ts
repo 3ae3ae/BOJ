@@ -1,7 +1,7 @@
 const input = `2 10000000000000
 1 1
 2 3`;
-
+//test
 function solution(input: string): string {
   class Matrix {
     static matrix: bigint[][];
