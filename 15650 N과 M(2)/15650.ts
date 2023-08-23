@@ -1,6 +1,6 @@
 import fs from "fs";
 const input = fs.readFileSync("./dev/stdin").toString().trim();
-
+// test
 function solution(input: string) {
   function makeList(m: number) {
     return Array.from({ length: m }, (x, i) => i + 1);
