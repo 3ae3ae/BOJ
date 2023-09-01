@@ -2,40 +2,34 @@ import fs = require("fs");
 const input = fs.readFileSync("./dev/stdin").toString().trim();
 
 function solution(input: string) {
-  const palindromes: string[] = [];
-  palindromes.push(input[0]);
+  const l = input.length;
 
-  // 1. 그냥 붙는경우
-  // 2. 붙지 않는 경우
-  // 3. 붙을 수 있지만 앞을 뜯어야 하는 경우
+  const dp: boolean[][] = Array.from({ length: l }, () => Array(l).fill(false));
 
-  for (let i = 1; i < input.length; i++) {
-    const letter = input[i];
-    if (returnSecondFromBack(palindromes)?.endsWith(letter)) {
-      ("blabla");
-    } else if (returnLastItem(palindromes)?.endsWith(letter)) {
-      ("blablabla");
-    } else {
-      palindromes.push(letter);
+  for (let i = 0; i < l; i++) {
+    dp[i][i] = true;
+    if (input[i] === input[i + 1]) dp[i][i + 1] = true;
+  }
+
+  for (let palinLen = 2; palinLen < l; palinLen++) {
+    for (let s = 0; s + palinLen < l; s++) {
+      const e = s + palinLen;
+      if (input[s] === input[e]) {
+        dp[s][e] = dp[s + 1][e - 1];
+      }
     }
   }
-}
 
-function isPalindrome(input: string): boolean {
-  const l = input.length;
-  if (l === 0) return true;
-  for (let i = 0; i < l / 2; i++) {
-    if (input[i] !== input[l - i - 1]) return false;
+  const result: number[] = [];
+  for (let end = 0; end < l; end++) {
+    result[end] = Infinity;
+    for (let strt = 0; strt <= end; strt++) {
+      if (dp[strt][end]) {
+        result[end] = Math.min(result[end], (result[strt - 1] || 0) + 1);
+      }
+    }
   }
-  return true;
-}
-
-function returnLastItem<T>(l: Array<T>): T | undefined {
-  return l[l.length - 1];
-}
-
-function returnSecondFromBack<T>(l: Array<T>): T | undefined {
-  return l[l.length - 2];
+  return result[l - 1];
 }
 
 console.log(solution(input));
