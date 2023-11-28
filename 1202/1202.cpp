@@ -1,9 +1,7 @@
 #include <iostream>
 #include <vector>
-#include <algorithm>
 #include <queue>
-#include <list>
-
+#include <set>
 using namespace std;
 
 using gem = pair<unsigned, unsigned>;
@@ -22,8 +20,7 @@ int main()
   int n, k;
   cin >> n >> k;
   priority_queue<gem, vector<gem>, cmp> gems;
-  priority_queue<int, vector<int>, greater<int>> temps;
-  list<int> bags;
+  multiset<int> bags;
 
   for (int i = 0; i < n; ++i)
   {
@@ -35,21 +32,16 @@ int main()
   {
     int t = 0;
     cin >> t;
-    temps.push(t);
+    bags.insert(t);
   }
-  for (int i = 0; i < k; ++i)
-  {
-    int t = temps.top();
-    temps.pop();
-    bags.push_back(t);
-  }
+
   unsigned long result = 0;
 
   while (!gems.empty())
   {
     gem g = gems.top();
     gems.pop();
-    auto i = lower_bound(bags.begin(), bags.end(), g.first);
+    auto i = bags.lower_bound(g.first);
     if (i != bags.end())
     {
       result += g.second;
