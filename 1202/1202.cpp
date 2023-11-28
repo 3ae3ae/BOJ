@@ -1,36 +1,61 @@
 #include <iostream>
 #include <vector>
 #include <algorithm>
-#include <deque>
+#include <queue>
+#include <list>
 
 using namespace std;
 
-bool cmp(pair<int, int> &a, pair<int, int> &b)
+using gem = pair<unsigned, unsigned>;
+// gem.first = 무게, gem.second = 가치
+
+struct cmp
 {
-  auto A = a.second / static_cast<double>(a.first);
-  auto B = b.second / static_cast<double>(b.first);
-  return A > B;
-}
+  bool operator()(gem &a, gem &b)
+  {
+    return b.second > a.second;
+  }
+};
 
 int main()
 {
   int n, k;
   cin >> n >> k;
-  vector<pair<int, int>> gem(n);
-  deque<int> bag(k);
+  priority_queue<gem, vector<gem>, cmp> gems;
+  priority_queue<int, vector<int>, greater<int>> temps;
+  list<int> bags;
 
   for (int i = 0; i < n; ++i)
   {
-    cin >> gem[i].first >> gem[i].second;
+    gem temp;
+    cin >> temp.first >> temp.second;
+    gems.push(temp);
   }
-  for (int i = 0; i < k; ++k)
+  for (int i = 0; i < k; ++i)
   {
-    cin >> bag[i];
+    int t = 0;
+    cin >> t;
+    temps.push(t);
   }
-  sort(gem.begin(), gem.end(), cmp);
-  sort(bag.begin(), bag.end());
-  int l = min(gem.size(), bag.size());
-  for (int i = 0; i < l; ++i)
+  for (int i = 0; i < k; ++i)
   {
+    int t = temps.top();
+    temps.pop();
+    bags.push_back(t);
   }
+  unsigned long result = 0;
+
+  while (!gems.empty())
+  {
+    gem g = gems.top();
+    gems.pop();
+    auto i = lower_bound(bags.begin(), bags.end(), g.first);
+    if (i != bags.end())
+    {
+      result += g.second;
+      bags.erase(i);
+    }
+  }
+  cout << result;
+  return 0;
 }
